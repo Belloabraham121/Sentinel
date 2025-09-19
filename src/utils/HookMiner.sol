@@ -20,16 +20,15 @@ library HookMiner {
         uint160 flags,
         bytes memory creationCode,
         bytes memory constructorArgs
-    ) internal pure returns (address hookAddress, bytes32 salt) {
+    )
+        internal
+        pure
+        returns (address hookAddress, bytes32 salt)
+    {
         // Simple implementation that tries different salts
-        for (uint256 i = 0; i < 100000; i++) {
+        for (uint256 i = 0; i < 100_000; i++) {
             salt = bytes32(i);
-            hookAddress = computeAddress(
-                deployer,
-                salt,
-                creationCode,
-                constructorArgs
-            );
+            hookAddress = computeAddress(deployer, salt, creationCode, constructorArgs);
 
             // Check if the address has the desired flags in the lower 160 bits
             if (uint160(hookAddress) & flags == flags) {
@@ -53,7 +52,11 @@ library HookMiner {
         bytes32 salt,
         bytes memory creationCode,
         bytes memory constructorArgs
-    ) internal pure returns (address) {
+    )
+        internal
+        pure
+        returns (address)
+    {
         bytes32 hash = keccak256(
             abi.encodePacked(
                 bytes1(0xff),

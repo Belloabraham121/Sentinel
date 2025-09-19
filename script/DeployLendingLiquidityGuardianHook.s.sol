@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {Script, console} from "forge-std/Script.sol";
-import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
-import {Hooks} from "v4-core/src/libraries/Hooks.sol";
-import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
-import {HookMiner} from "../src/utils/HookMiner.sol";
-import {LendingLiquidityGuardianHook} from "../src/LendingLiquidityGuardianHook.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { IHooks } from "v4-core/src/interfaces/IHooks.sol";
+import { Hooks } from "v4-core/src/libraries/Hooks.sol";
+import { IPoolManager } from "v4-core/src/interfaces/IPoolManager.sol";
+import { HookMiner } from "../src/utils/HookMiner.sol";
+import { LendingLiquidityGuardianHook } from "../src/LendingLiquidityGuardianHook.sol";
 
 contract DeployLendingLiquidityGuardianHook is Script {
     // Network-specific addresses
@@ -19,41 +19,35 @@ contract DeployLendingLiquidityGuardianHook is Script {
     }
 
     // Mainnet configuration
-    NetworkConfig mainnetConfig =
-        NetworkConfig({
-            poolManager: 0x0000000000000000000000000000000000000000, // To be updated with actual V4 deployment
-            aaveV3Pool: 0x87870bace7f90f81e72b01b9De3656c4C2427C4E,
-            aaveV3Oracle: 0x54586bE62E3c3580375aE3723C145253060Ca0C2,
-            compoundV3Usdc: 0xc3d688B66703497DAA19211EEdff47f25384cdc3,
-            compoundV3Weth: 0xA17581A9E3356d9A858b789D68B4d866e593aE94
-        });
+    NetworkConfig mainnetConfig = NetworkConfig({
+        poolManager: 0x0000000000000000000000000000000000000000, // To be updated with actual V4 deployment
+        aaveV3Pool: 0x87870bace7f90f81e72b01b9De3656c4C2427C4E,
+        aaveV3Oracle: 0x54586bE62E3c3580375aE3723C145253060Ca0C2,
+        compoundV3Usdc: 0xc3d688B66703497DAA19211EEdff47f25384cdc3,
+        compoundV3Weth: 0xA17581A9E3356d9A858b789D68B4d866e593aE94
+    });
 
     // Sepolia testnet configuration
-    NetworkConfig sepoliaConfig =
-        NetworkConfig({
-            poolManager: 0x0000000000000000000000000000000000000000, // To be updated with testnet deployment
-            aaveV3Pool: 0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951,
-            aaveV3Oracle: 0x2da88497588bf89281816106C7259e31AF45a663,
-            compoundV3Usdc: 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238,
-            compoundV3Weth: address(0) // Not available on Sepolia
-        });
+    NetworkConfig sepoliaConfig = NetworkConfig({
+        poolManager: 0x0000000000000000000000000000000000000000, // To be updated with testnet deployment
+        aaveV3Pool: 0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951,
+        aaveV3Oracle: 0x2da88497588bf89281816106C7259e31AF45a663,
+        compoundV3Usdc: 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238,
+        compoundV3Weth: address(0) // Not available on Sepolia
+     });
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
 
-        console.log(
-            "Deploying LendingLiquidityGuardianHook with deployer:",
-            deployer
-        );
+        console.log("Deploying LendingLiquidityGuardianHook with deployer:", deployer);
         console.log("Deployer balance:", deployer.balance);
 
         // Get network configuration
         NetworkConfig memory config = getNetworkConfig();
 
         require(
-            config.poolManager != address(0),
-            "PoolManager address not configured for this network"
+            config.poolManager != address(0), "PoolManager address not configured for this network"
         );
 
         vm.startBroadcast(deployerPrivateKey);
@@ -74,9 +68,8 @@ contract DeployLendingLiquidityGuardianHook is Script {
         console.log("Salt:", vm.toString(salt));
 
         // Deploy the hook to the pre-mined address
-        LendingLiquidityGuardianHook hook = new LendingLiquidityGuardianHook{
-            salt: salt
-        }(IPoolManager(config.poolManager));
+        LendingLiquidityGuardianHook hook =
+            new LendingLiquidityGuardianHook{ salt: salt }(IPoolManager(config.poolManager));
 
         require(address(hook) == hookAddress, "Hook address mismatch");
 
@@ -100,7 +93,7 @@ contract DeployLendingLiquidityGuardianHook is Script {
 
         if (chainId == 1) {
             return mainnetConfig;
-        } else if (chainId == 11155111) {
+        } else if (chainId == 11_155_111) {
             return sepoliaConfig;
         } else {
             revert("Unsupported network");
@@ -110,7 +103,9 @@ contract DeployLendingLiquidityGuardianHook is Script {
     function _configureProtocolAdapters(
         LendingLiquidityGuardianHook hook,
         NetworkConfig memory config
-    ) internal {
+    )
+        internal
+    {
         console.log("Configuring protocol adapters...");
 
         // Configure Aave V3
@@ -132,10 +127,7 @@ contract DeployLendingLiquidityGuardianHook is Script {
                 true,
                 1.05e18 // 105% liquidation threshold
             );
-            console.log(
-                "Configured Compound V3 USDC adapter:",
-                config.compoundV3Usdc
-            );
+            console.log("Configured Compound V3 USDC adapter:", config.compoundV3Usdc);
         }
 
         // Configure Compound V3 WETH (if available)
@@ -146,17 +138,17 @@ contract DeployLendingLiquidityGuardianHook is Script {
                 true,
                 1.05e18 // 105% liquidation threshold
             );
-            console.log(
-                "Configured Compound V3 WETH adapter:",
-                config.compoundV3Weth
-            );
+            console.log("Configured Compound V3 WETH adapter:", config.compoundV3Weth);
         }
     }
 
     function _logDeploymentSummary(
         address hookAddress,
         NetworkConfig memory config
-    ) internal view {
+    )
+        internal
+        view
+    {
         console.log("\n=== Deployment Summary ===");
         console.log("Network:", getNetworkName());
         console.log("Hook Address:", hookAddress);
@@ -175,7 +167,7 @@ contract DeployLendingLiquidityGuardianHook is Script {
 
         if (chainId == 1) {
             return "Ethereum Mainnet";
-        } else if (chainId == 11155111) {
+        } else if (chainId == 11_155_111) {
             return "Sepolia Testnet";
         } else {
             return "Unknown Network";
@@ -195,9 +187,8 @@ contract DeployLendingLiquidityGuardianHook is Script {
         );
 
         // Deploy the hook
-        LendingLiquidityGuardianHook hook = new LendingLiquidityGuardianHook{
-            salt: salt
-        }(IPoolManager(poolManager));
+        LendingLiquidityGuardianHook hook =
+            new LendingLiquidityGuardianHook{ salt: salt }(IPoolManager(poolManager));
 
         require(address(hook) == hookAddress, "Hook address mismatch");
 

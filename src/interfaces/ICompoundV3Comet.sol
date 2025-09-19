@@ -59,7 +59,8 @@ interface ICompoundV3Comet {
         uint256 minAmount,
         uint256 baseAmount,
         address recipient
-    ) external;
+    )
+        external;
 
     /**
      * @notice Supply an amount of asset to the protocol
@@ -83,12 +84,7 @@ interface ICompoundV3Comet {
      * @param asset The asset to supply
      * @param amount The quantity to supply
      */
-    function supplyFrom(
-        address from,
-        address dst,
-        address asset,
-        uint256 amount
-    ) external;
+    function supplyFrom(address from, address dst, address asset, uint256 amount) external;
 
     /**
      * @notice Transfer an amount of asset from src to dst, if allowed
@@ -97,12 +93,7 @@ interface ICompoundV3Comet {
      * @param asset The asset to transfer
      * @param amount The quantity to transfer
      */
-    function transferAsset(
-        address src,
-        address dst,
-        address asset,
-        uint256 amount
-    ) external;
+    function transferAsset(address src, address dst, address asset, uint256 amount) external;
 
     /**
      * @notice Transfer an amount of asset from src to dst, if allowed
@@ -111,12 +102,7 @@ interface ICompoundV3Comet {
      * @param asset The asset to transfer
      * @param amount The quantity to transfer
      */
-    function transferAssetFrom(
-        address src,
-        address dst,
-        address asset,
-        uint256 amount
-    ) external;
+    function transferAssetFrom(address src, address dst, address asset, uint256 amount) external;
 
     /**
      * @notice Withdraw an amount of asset from the protocol
@@ -140,12 +126,7 @@ interface ICompoundV3Comet {
      * @param asset The asset to withdraw
      * @param amount The quantity to withdraw
      */
-    function withdrawFrom(
-        address src,
-        address dst,
-        address asset,
-        uint256 amount
-    ) external;
+    function withdrawFrom(address src, address dst, address asset, uint256 amount) external;
 
     /**
      * @notice Approve `manager` to act on behalf of the sender
@@ -174,7 +155,8 @@ interface ICompoundV3Comet {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external;
+    )
+        external;
 
     /**
      * @notice Get the current collateral balance of an account for an asset
@@ -182,10 +164,7 @@ interface ICompoundV3Comet {
      * @param asset The asset to check
      * @return The collateral balance
      */
-    function collateralBalanceOf(
-        address account,
-        address asset
-    ) external view returns (uint128);
+    function collateralBalanceOf(address account, address asset) external view returns (uint128);
 
     /**
      * @notice Get the current base balance of an account
@@ -213,9 +192,7 @@ interface ICompoundV3Comet {
      * @param account The account to check
      * @return Whether the account is underwater
      */
-    function isBorrowCollateralized(
-        address account
-    ) external view returns (bool);
+    function isBorrowCollateralized(address account) external view returns (bool);
 
     /**
      * @notice Check if an account has enough collateral to withdraw an amount
@@ -228,16 +205,17 @@ interface ICompoundV3Comet {
         address account,
         address asset,
         uint256 amount
-    ) external view returns (bool);
+    )
+        external
+        view
+        returns (bool);
 
     /**
      * @notice Get account's basic information
      * @param account The account to check
      * @return The account's basic information
      */
-    function userBasic(
-        address account
-    ) external view returns (UserBasic memory);
+    function userBasic(address account) external view returns (UserBasic memory);
 
     /**
      * @notice Get account's collateral information for a specific asset
@@ -248,7 +226,10 @@ interface ICompoundV3Comet {
     function userCollateral(
         address account,
         address asset
-    ) external view returns (UserCollateral memory);
+    )
+        external
+        view
+        returns (UserCollateral memory);
 
     /**
      * @notice Get the current utilization rate
@@ -282,9 +263,7 @@ interface ICompoundV3Comet {
      * @param asset The asset address
      * @return The asset information
      */
-    function getAssetInfoByAddress(
-        address asset
-    ) external view returns (AssetInfo memory);
+    function getAssetInfoByAddress(address asset) external view returns (AssetInfo memory);
 
     /**
      * @notice Get the price from the protocol's price feed
@@ -299,10 +278,7 @@ interface ICompoundV3Comet {
      * @param baseAmount The base amount
      * @return The collateral amount
      */
-    function quoteCollateral(
-        address asset,
-        uint256 baseAmount
-    ) external view returns (uint256);
+    function quoteCollateral(address asset, uint256 baseAmount) external view returns (uint256);
 
     /**
      * @notice Get the total number of assets
@@ -350,19 +326,13 @@ interface ICompoundV3Comet {
      * @notice Get the supply rate slope below kink
      * @return The supply rate slope below kink
      */
-    function supplyPerYearInterestRateSlopeLow()
-        external
-        view
-        returns (uint256);
+    function supplyPerYearInterestRateSlopeLow() external view returns (uint256);
 
     /**
      * @notice Get the supply rate slope above kink
      * @return The supply rate slope above kink
      */
-    function supplyPerYearInterestRateSlopeHigh()
-        external
-        view
-        returns (uint256);
+    function supplyPerYearInterestRateSlopeHigh() external view returns (uint256);
 
     /**
      * @notice Get the borrow kink utilization rate
@@ -380,19 +350,13 @@ interface ICompoundV3Comet {
      * @notice Get the borrow rate slope below kink
      * @return The borrow rate slope below kink
      */
-    function borrowPerYearInterestRateSlopeLow()
-        external
-        view
-        returns (uint256);
+    function borrowPerYearInterestRateSlopeLow() external view returns (uint256);
 
     /**
      * @notice Get the borrow rate slope above kink
      * @return The borrow rate slope above kink
      */
-    function borrowPerYearInterestRateSlopeHigh()
-        external
-        view
-        returns (uint256);
+    function borrowPerYearInterestRateSlopeHigh() external view returns (uint256);
 
     /**
      * @notice Get the factor for reserve purchases of collateral
@@ -454,10 +418,7 @@ interface ICompoundV3Comet {
      * @param manager The manager address
      * @return Whether manager is allowed
      */
-    function isAllowed(
-        address owner,
-        address manager
-    ) external view returns (bool);
+    function isAllowed(address owner, address manager) external view returns (bool);
 
     /**
      * @notice Get the nonce for permit

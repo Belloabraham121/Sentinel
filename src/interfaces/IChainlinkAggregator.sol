@@ -67,9 +67,7 @@ interface IChainlinkAggregator {
      * @return updatedAt Timestamp of when the round was updated
      * @return answeredInRound The round ID of the round in which the answer was computed
      */
-    function getRoundData(
-        uint80 roundId
-    )
+    function getRoundData(uint80 roundId)
         external
         view
         returns (
@@ -167,10 +165,7 @@ interface IChainlinkFeedRegistry {
      * @param quote The quote asset address
      * @return The number of decimals
      */
-    function decimals(
-        address base,
-        address quote
-    ) external view returns (uint8);
+    function decimals(address base, address quote) external view returns (uint8);
 
     /**
      * @notice Returns the description for a given base/quote pair
@@ -178,10 +173,7 @@ interface IChainlinkFeedRegistry {
      * @param quote The quote asset address
      * @return The description string
      */
-    function description(
-        address base,
-        address quote
-    ) external view returns (string memory);
+    function description(address base, address quote) external view returns (string memory);
 
     /**
      * @notice Returns the version for a given base/quote pair
@@ -189,10 +181,7 @@ interface IChainlinkFeedRegistry {
      * @param quote The quote asset address
      * @return The version
      */
-    function version(
-        address base,
-        address quote
-    ) external view returns (uint256);
+    function version(address base, address quote) external view returns (uint256);
 
     /**
      * @notice Returns the aggregator address for a given base/quote pair
@@ -200,10 +189,7 @@ interface IChainlinkFeedRegistry {
      * @param quote The quote asset address
      * @return The aggregator address
      */
-    function getFeed(
-        address base,
-        address quote
-    ) external view returns (IChainlinkAggregator);
+    function getFeed(address base, address quote) external view returns (IChainlinkAggregator);
 
     /**
      * @notice Returns whether a feed exists for a given base/quote pair
@@ -211,10 +197,7 @@ interface IChainlinkFeedRegistry {
      * @param quote The quote asset address
      * @return Whether the feed exists
      */
-    function isFeedEnabled(
-        address base,
-        address quote
-    ) external view returns (bool);
+    function isFeedEnabled(address base, address quote) external view returns (bool);
 
     /**
      * @notice Returns the previous round ID for a given base/quote pair and round ID
@@ -227,7 +210,10 @@ interface IChainlinkFeedRegistry {
         address base,
         address quote,
         uint80 roundId
-    ) external view returns (uint80);
+    )
+        external
+        view
+        returns (uint80);
 
     /**
      * @notice Returns the next round ID for a given base/quote pair and round ID
@@ -240,7 +226,10 @@ interface IChainlinkFeedRegistry {
         address base,
         address quote,
         uint80 roundId
-    ) external view returns (uint80);
+    )
+        external
+        view
+        returns (uint80);
 
     /**
      * @notice Returns the phase for a given base/quote pair and round ID
@@ -249,11 +238,7 @@ interface IChainlinkFeedRegistry {
      * @param roundId The round ID
      * @return The phase
      */
-    function getPhase(
-        address base,
-        address quote,
-        uint80 roundId
-    ) external view returns (uint16);
+    function getPhase(address base, address quote, uint80 roundId) external view returns (uint16);
 
     /**
      * @notice Returns the round ID at a given phase for a base/quote pair
@@ -266,7 +251,10 @@ interface IChainlinkFeedRegistry {
         address base,
         address quote,
         uint16 phaseId
-    ) external view returns (uint80);
+    )
+        external
+        view
+        returns (uint80);
 
     /**
      * @notice Returns the phase range for a given base/quote pair
@@ -278,7 +266,10 @@ interface IChainlinkFeedRegistry {
     function getPhaseRange(
         address base,
         address quote
-    ) external view returns (uint80 startingRoundId, uint80 endingRoundId);
+    )
+        external
+        view
+        returns (uint80 startingRoundId, uint80 endingRoundId);
 
     /**
      * @notice Returns the current phase ID for a given base/quote pair
@@ -286,8 +277,5 @@ interface IChainlinkFeedRegistry {
      * @param quote The quote asset address
      * @return The current phase ID
      */
-    function getCurrentPhaseId(
-        address base,
-        address quote
-    ) external view returns (uint16);
+    function getCurrentPhaseId(address base, address quote) external view returns (uint16);
 }

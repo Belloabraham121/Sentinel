@@ -50,9 +50,7 @@ interface IAaveV3Pool {
      * @return ltv The loan to value of the user
      * @return healthFactor The current health factor of the user
      */
-    function getUserAccountData(
-        address user
-    )
+    function getUserAccountData(address user)
         external
         view
         returns (
@@ -69,27 +67,21 @@ interface IAaveV3Pool {
      * @param asset The address of the underlying asset of the reserve
      * @return The configuration of the reserve
      */
-    function getReserveData(
-        address asset
-    ) external view returns (ReserveData memory);
+    function getReserveData(address asset) external view returns (ReserveData memory);
 
     /**
      * @notice Returns the normalized income of the reserve
      * @param asset The address of the underlying asset of the reserve
      * @return The reserve's normalized income
      */
-    function getReserveNormalizedIncome(
-        address asset
-    ) external view returns (uint256);
+    function getReserveNormalizedIncome(address asset) external view returns (uint256);
 
     /**
      * @notice Returns the normalized variable debt per unit of asset
      * @param asset The address of the underlying asset of the reserve
      * @return The reserve normalized variable debt
      */
-    function getReserveNormalizedVariableDebt(
-        address asset
-    ) external view returns (uint256);
+    function getReserveNormalizedVariableDebt(address asset) external view returns (uint256);
 
     /**
      * @notice Returns the list of the underlying assets of all the initialized reserves
@@ -140,7 +132,8 @@ interface IAaveV3Pool {
         uint256 amount,
         address onBehalfOf,
         uint16 referralCode
-    ) external;
+    )
+        external;
 
     /**
      * @notice Withdraws an `amount` of underlying asset from the reserve, burning the equivalent aTokens owned
@@ -151,11 +144,7 @@ interface IAaveV3Pool {
      *   different wallet
      * @return The final amount withdrawn
      */
-    function withdraw(
-        address asset,
-        uint256 amount,
-        address to
-    ) external returns (uint256);
+    function withdraw(address asset, uint256 amount, address to) external returns (uint256);
 
     /**
      * @notice Allows users to borrow a specific `amount` of the reserve underlying asset
@@ -174,7 +163,8 @@ interface IAaveV3Pool {
         uint256 interestRateMode,
         uint16 referralCode,
         address onBehalfOf
-    ) external;
+    )
+        external;
 
     /**
      * @notice Repays a borrowed `amount` on a specific reserve, burning the equivalent debt tokens owned
@@ -191,17 +181,16 @@ interface IAaveV3Pool {
         uint256 amount,
         uint256 interestRateMode,
         address onBehalfOf
-    ) external returns (uint256);
+    )
+        external
+        returns (uint256);
 
     /**
      * @notice Allows a borrower to swap his debt between stable and variable mode, or vice versa
      * @param asset The address of the underlying asset borrowed
      * @param interestRateMode The current interest rate mode of the position being swapped: 1 for Stable, 2 for Variable
      */
-    function swapBorrowRateMode(
-        address asset,
-        uint256 interestRateMode
-    ) external;
+    function swapBorrowRateMode(address asset, uint256 interestRateMode) external;
 
     /**
      * @notice Rebalances the stable interest rate of a user to the current stable rate defined on the reserve.
@@ -215,10 +204,7 @@ interface IAaveV3Pool {
      * @param asset The address of the underlying asset supplied
      * @param useAsCollateral True if the user wants to use the supply as collateral, false otherwise
      */
-    function setUserUseReserveAsCollateral(
-        address asset,
-        bool useAsCollateral
-    ) external;
+    function setUserUseReserveAsCollateral(address asset, bool useAsCollateral) external;
 
     /**
      * @notice Function to liquidate a non-healthy position collateral-wise, with Health Factor below 1
@@ -235,16 +221,14 @@ interface IAaveV3Pool {
         address user,
         uint256 debtToCover,
         bool receiveAToken
-    ) external;
+    )
+        external;
 
     /**
      * @notice Returns the percentage of available liquidity that can be borrowed at once at stable rate
      * @return The percentage of available liquidity to borrow, expressed in bps
      */
-    function MAX_STABLE_RATE_BORROW_SIZE_PERCENT()
-        external
-        view
-        returns (uint256);
+    function MAX_STABLE_RATE_BORROW_SIZE_PERCENT() external view returns (uint256);
 
     /**
      * @notice Returns the fee on flash loans

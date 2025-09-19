@@ -19,9 +19,7 @@ interface IAaveV3Oracle {
      * @param assets The list of assets addresses
      * @return The prices of the given assets
      */
-    function getAssetsPrices(
-        address[] calldata assets
-    ) external view returns (uint256[] memory);
+    function getAssetsPrices(address[] calldata assets) external view returns (uint256[] memory);
 
     /**
      * @notice Returns the address of the source of an asset
@@ -54,10 +52,7 @@ interface IAaveV3Oracle {
      * @param assets The addresses of the assets
      * @param sources The addresses of the price sources
      */
-    function setAssetSources(
-        address[] calldata assets,
-        address[] calldata sources
-    ) external;
+    function setAssetSources(address[] calldata assets, address[] calldata sources) external;
 
     /**
      * @notice Sets the fallback oracle

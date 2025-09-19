@@ -1,26 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {Test, console} from "forge-std/Test.sol";
-import {Vm} from "forge-std/Vm.sol";
-import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
-import {Hooks} from "v4-core/src/libraries/Hooks.sol";
-import {TickMath} from "v4-core/src/libraries/TickMath.sol";
-import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
-import {PoolKey} from "v4-core/src/types/PoolKey.sol";
-import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
-import {Deployers} from "v4-core/test/utils/Deployers.sol";
-import {CurrencyLibrary, Currency} from "v4-core/src/types/Currency.sol";
-import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
-import {BeforeSwapDelta} from "v4-core/src/types/BeforeSwapDelta.sol";
-import {StateLibrary} from "v4-core/src/libraries/StateLibrary.sol";
-import {HookMiner} from "../src/utils/HookMiner.sol";
-import {LendingLiquidityGuardianHook} from "../src/LendingLiquidityGuardianHook.sol";
-import {IAaveV3Pool} from "../src/interfaces/IAaveV3Pool.sol";
-import {IAaveV3Oracle} from "../src/interfaces/IAaveV3Oracle.sol";
-import {ICompoundV3Comet} from "../src/interfaces/ICompoundV3Comet.sol";
-import {IChainlinkAggregator} from "../src/interfaces/IChainlinkAggregator.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Test, console } from "forge-std/Test.sol";
+import { Vm } from "forge-std/Vm.sol";
+import { IHooks } from "v4-core/src/interfaces/IHooks.sol";
+import { Hooks } from "v4-core/src/libraries/Hooks.sol";
+import { TickMath } from "v4-core/src/libraries/TickMath.sol";
+import { IPoolManager } from "v4-core/src/interfaces/IPoolManager.sol";
+import { PoolKey } from "v4-core/src/types/PoolKey.sol";
+import { PoolId, PoolIdLibrary } from "v4-core/src/types/PoolId.sol";
+import { Deployers } from "v4-core/test/utils/Deployers.sol";
+import { CurrencyLibrary, Currency } from "v4-core/src/types/Currency.sol";
+import { BalanceDelta } from "v4-core/src/types/BalanceDelta.sol";
+import { BeforeSwapDelta } from "v4-core/src/types/BeforeSwapDelta.sol";
+import { StateLibrary } from "v4-core/src/libraries/StateLibrary.sol";
+import { HookMiner } from "../src/utils/HookMiner.sol";
+import { LendingLiquidityGuardianHook } from "../src/LendingLiquidityGuardianHook.sol";
+import { IAaveV3Pool } from "../src/interfaces/IAaveV3Pool.sol";
+import { IAaveV3Oracle } from "../src/interfaces/IAaveV3Oracle.sol";
+import { ICompoundV3Comet } from "../src/interfaces/ICompoundV3Comet.sol";
+import { IChainlinkAggregator } from "../src/interfaces/IChainlinkAggregator.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title LendingLiquidityGuardianHook Mainnet Fork Test
 /// @notice Comprehensive mainnet fork tests for the LendingLiquidityGuardianHook with real protocol integrations
@@ -34,18 +34,13 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
 
     // Ethereum Mainnet Protocol Addresses
     address constant AAVE_V3_POOL = 0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2;
-    address constant AAVE_V3_ORACLE =
-        0x54586bE62E3c3580375aE3723C145253060Ca0C2;
-    address constant COMPOUND_V3_USDC =
-        0xc3d688B66703497DAA19211EEdff47f25384cdc3;
-    address constant COMPOUND_V3_ETH =
-        0xA17581A9E3356d9A858b789D68B4d866e593aE94;
+    address constant AAVE_V3_ORACLE = 0x54586bE62E3c3580375aE3723C145253060Ca0C2;
+    address constant COMPOUND_V3_USDC = 0xc3d688B66703497DAA19211EEdff47f25384cdc3;
+    address constant COMPOUND_V3_ETH = 0xA17581A9E3356d9A858b789D68B4d866e593aE94;
 
     // Chainlink Price Feeds
-    address constant CHAINLINK_ETH_USD =
-        0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
-    address constant CHAINLINK_USDC_USD =
-        0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6;
+    address constant CHAINLINK_ETH_USD = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
+    address constant CHAINLINK_USDC_USD = 0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6;
 
     // Token Addresses (properly ordered for Uniswap V4)
     address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // TOKEN0 (lower address)
@@ -72,7 +67,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
     address protocolAdmin = makeAddr("protocolAdmin");
 
     // Test constants
-    uint256 constant FORK_BLOCK_NUMBER = 19000000; // Recent mainnet block
+    uint256 constant FORK_BLOCK_NUMBER = 19_000_000; // Recent mainnet block
     uint256 constant INITIAL_BALANCE = 1000 ether;
     uint256 constant TEST_AMOUNT = 10 ether;
     uint256 constant LIQUIDATION_THRESHOLD = 8500; // 85% liquidation threshold in basis points
@@ -106,11 +101,8 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
 
         // Deploy hook with proper permissions
         uint160 flags = uint160(
-            Hooks.BEFORE_INITIALIZE_FLAG |
-                Hooks.AFTER_INITIALIZE_FLAG |
-                Hooks.BEFORE_SWAP_FLAG |
-                Hooks.AFTER_SWAP_FLAG |
-                Hooks.AFTER_ADD_LIQUIDITY_FLAG
+            Hooks.BEFORE_INITIALIZE_FLAG | Hooks.AFTER_INITIALIZE_FLAG | Hooks.BEFORE_SWAP_FLAG
+                | Hooks.AFTER_SWAP_FLAG | Hooks.AFTER_ADD_LIQUIDITY_FLAG
         );
 
         (address hookAddress, bytes32 salt) = HookMiner.find(
@@ -120,9 +112,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
             abi.encode(address(manager))
         );
 
-        hook = new LendingLiquidityGuardianHook{salt: salt}(
-            IPoolManager(address(manager))
-        );
+        hook = new LendingLiquidityGuardianHook{ salt: salt }(IPoolManager(address(manager)));
         require(address(hook) == hookAddress, "Hook address mismatch");
 
         console.log("Hook deployed at:", address(hook));
@@ -138,10 +128,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         poolId = poolKey.toId();
         manager.initialize(poolKey, SQRT_PRICE_1_1);
 
-        console.log(
-            "Pool initialized with ID:",
-            uint256(PoolId.unwrap(poolId))
-        );
+        console.log("Pool initialized with ID:", uint256(PoolId.unwrap(poolId)));
 
         // Make protocol contracts persistent across fork operations
         vm.makePersistent(AAVE_V3_POOL);
@@ -211,9 +198,9 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
     function _setupTokenBalances() internal {
         // Get tokens from whales for testing
         vm.startPrank(USDC_WHALE);
-        IERC20(USDC).transfer(liquidator, 100000e6); // 100k USDC
-        IERC20(USDC).transfer(borrower, 50000e6); // 50k USDC
-        IERC20(USDC).transfer(lpProvider, 75000e6); // 75k USDC
+        IERC20(USDC).transfer(liquidator, 100_000e6); // 100k USDC
+        IERC20(USDC).transfer(borrower, 50_000e6); // 50k USDC
+        IERC20(USDC).transfer(lpProvider, 75_000e6); // 75k USDC
         vm.stopPrank();
 
         vm.startPrank(WETH_WHALE);
@@ -223,19 +210,10 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         vm.stopPrank();
 
         console.log("Token balances setup:");
-        console.log(
-            "- Liquidator USDC:",
-            IERC20(USDC).balanceOf(liquidator) / 1e6
-        );
-        console.log(
-            "- Liquidator WETH:",
-            IERC20(WETH).balanceOf(liquidator) / 1e18
-        );
+        console.log("- Liquidator USDC:", IERC20(USDC).balanceOf(liquidator) / 1e6);
+        console.log("- Liquidator WETH:", IERC20(WETH).balanceOf(liquidator) / 1e18);
         console.log("- Borrower USDC:", IERC20(USDC).balanceOf(borrower) / 1e6);
-        console.log(
-            "- Borrower WETH:",
-            IERC20(WETH).balanceOf(borrower) / 1e18
-        );
+        console.log("- Borrower WETH:", IERC20(WETH).balanceOf(borrower) / 1e18);
     }
 
     // =============================================================================
@@ -249,13 +227,10 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         IAaveV3Pool aavePool = IAaveV3Pool(AAVE_V3_POOL);
 
         // Get pool configuration
-        try aavePool.getReserveData(USDC) returns (
-            IAaveV3Pool.ReserveData memory reserveData
-        ) {
+        try aavePool.getReserveData(USDC) returns (IAaveV3Pool.ReserveData memory reserveData) {
             console.log("Aave V3 USDC aToken:", reserveData.aTokenAddress);
             assertTrue(
-                reserveData.aTokenAddress != address(0),
-                "USDC should be configured in Aave V3"
+                reserveData.aTokenAddress != address(0), "USDC should be configured in Aave V3"
             );
         } catch {
             console.log("Failed to get Aave V3 configuration");
@@ -271,8 +246,8 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         }
 
         // Test protocol adapter configuration
-        LendingLiquidityGuardianHook.ProtocolAdapter memory adapter = hook
-            .getProtocolAdapter(AAVE_V3_POOL);
+        LendingLiquidityGuardianHook.ProtocolAdapter memory adapter =
+            hook.getProtocolAdapter(AAVE_V3_POOL);
         assertTrue(adapter.enabled, "Aave V3 adapter should be enabled");
         assertEq(
             adapter.liquidationThreshold,
@@ -306,8 +281,8 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         }
 
         // Test protocol adapter configuration
-        LendingLiquidityGuardianHook.ProtocolAdapter memory adapter = hook
-            .getProtocolAdapter(COMPOUND_V3_USDC);
+        LendingLiquidityGuardianHook.ProtocolAdapter memory adapter =
+            hook.getProtocolAdapter(COMPOUND_V3_USDC);
         assertTrue(adapter.enabled, "Compound V3 adapter should be enabled");
         assertEq(
             adapter.liquidationThreshold,
@@ -322,9 +297,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         console.log("\n=== TESTING CHAINLINK PRICE FEEDS ===");
 
         // Test ETH/USD price feed
-        IChainlinkAggregator ethUsdFeed = IChainlinkAggregator(
-            CHAINLINK_ETH_USD
-        );
+        IChainlinkAggregator ethUsdFeed = IChainlinkAggregator(CHAINLINK_ETH_USD);
         try ethUsdFeed.latestRoundData() returns (
             uint80 roundId,
             int256 price,
@@ -335,18 +308,13 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
             console.log("ETH/USD price:", uint256(price) / 1e8);
             assertTrue(price > 0, "ETH price should be positive");
             assertTrue(updatedAt > 0, "Price should have valid timestamp");
-            assertTrue(
-                block.timestamp - updatedAt < 3600,
-                "Price should be recent (within 1 hour)"
-            );
+            assertTrue(block.timestamp - updatedAt < 3600, "Price should be recent (within 1 hour)");
         } catch {
             console.log("Failed to get ETH/USD price");
         }
 
         // Test USDC/USD price feed
-        IChainlinkAggregator usdcUsdFeed = IChainlinkAggregator(
-            CHAINLINK_USDC_USD
-        );
+        IChainlinkAggregator usdcUsdFeed = IChainlinkAggregator(CHAINLINK_USDC_USD);
         try usdcUsdFeed.latestRoundData() returns (
             uint80 roundId,
             int256 price,
@@ -355,10 +323,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
             uint80 answeredInRound
         ) {
             console.log("USDC/USD price:", uint256(price) / 1e8);
-            assertTrue(
-                price > 0.95e8 && price < 1.05e8,
-                "USDC price should be close to $1"
-            );
+            assertTrue(price > 0.95e8 && price < 1.05e8, "USDC price should be close to $1");
             assertTrue(updatedAt > 0, "Price should have valid timestamp");
         } catch {
             console.log("Failed to get USDC/USD price");
@@ -377,16 +342,15 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         // Test with a real borrower address that has positions
 
         // Create liquidation data for testing
-        LendingLiquidityGuardianHook.LiquidationData
-            memory liquidationData = LendingLiquidityGuardianHook
-                .LiquidationData({
-                    borrower: AAVE_BORROWER,
-                    collateralAsset: WETH,
-                    debtAsset: USDC,
-                    debtToCover: 1000e6, // 1000 USDC
-                    receiveAToken: false,
-                    protocolAdapter: AAVE_V3_POOL
-                });
+        LendingLiquidityGuardianHook.LiquidationData memory liquidationData =
+        LendingLiquidityGuardianHook.LiquidationData({
+            borrower: AAVE_BORROWER,
+            collateralAsset: WETH,
+            debtAsset: USDC,
+            debtToCover: 1000e6, // 1000 USDC
+            receiveAToken: false,
+            protocolAdapter: AAVE_V3_POOL
+        });
 
         // Test health factor calculation through hook
         // Note: This tests the integration without actually executing liquidation
@@ -402,9 +366,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         // Test beforeSwap hook (should check health factor)
         vm.prank(address(manager));
         try hook.beforeSwap(liquidator, poolKey, params, hookData) returns (
-            bytes4 selector,
-            BeforeSwapDelta beforeSwapDelta,
-            uint24 lpFeeOverride
+            bytes4 selector, BeforeSwapDelta beforeSwapDelta, uint24 lpFeeOverride
         ) {
             assertEq(selector, IHooks.beforeSwap.selector);
             console.log("Health factor check completed successfully");
@@ -425,16 +387,15 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         IERC20(WETH).approve(address(hook), type(uint256).max);
 
         // Create liquidation data
-        LendingLiquidityGuardianHook.LiquidationData
-            memory liquidationData = LendingLiquidityGuardianHook
-                .LiquidationData({
-                    borrower: borrower, // Use test borrower
-                    collateralAsset: WETH,
-                    debtAsset: USDC,
-                    debtToCover: 1000e6,
-                    receiveAToken: false,
-                    protocolAdapter: AAVE_V3_POOL
-                });
+        LendingLiquidityGuardianHook.LiquidationData memory liquidationData =
+        LendingLiquidityGuardianHook.LiquidationData({
+            borrower: borrower, // Use test borrower
+            collateralAsset: WETH,
+            debtAsset: USDC,
+            debtToCover: 1000e6,
+            receiveAToken: false,
+            protocolAdapter: AAVE_V3_POOL
+        });
 
         bytes memory hookData = abi.encode(liquidationData);
 
@@ -448,16 +409,11 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         // Test liquidation through beforeSwap hook
         vm.prank(address(manager));
         try hook.beforeSwap(liquidator, poolKey, params, hookData) returns (
-            bytes4 selector,
-            BeforeSwapDelta beforeSwapDelta,
-            uint24 lpFeeOverride
+            bytes4 selector, BeforeSwapDelta beforeSwapDelta, uint24 lpFeeOverride
         ) {
             console.log("Liquidation execution test completed");
         } catch Error(string memory reason) {
-            console.log(
-                "Liquidation execution failed (expected for test borrower):",
-                reason
-            );
+            console.log("Liquidation execution failed (expected for test borrower):", reason);
         }
 
         console.log("Liquidation execution test completed");
@@ -471,7 +427,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         console.log("\n=== TESTING VOLATILITY CALCULATION ===");
 
         // Simulate multiple swaps to generate tick history
-        for (uint i = 0; i < 10; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             vm.prank(address(manager));
 
             IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
@@ -483,9 +439,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
             });
 
             try hook.beforeSwap(address(this), poolKey, params, "") returns (
-                bytes4 selector,
-                BeforeSwapDelta beforeSwapDelta,
-                uint24 lpFeeOverride
+                bytes4 selector, BeforeSwapDelta beforeSwapDelta, uint24 lpFeeOverride
             ) {
                 console.log("Swap", i + 1, "processed for volatility tracking");
             } catch {
@@ -498,10 +452,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         console.log("Calculated volatility metric:", volatility);
 
         assertTrue(volatility >= 0, "Volatility should be non-negative");
-        assertTrue(
-            volatility <= 100,
-            "Volatility should be within expected range"
-        );
+        assertTrue(volatility <= 100, "Volatility should be within expected range");
 
         console.log("Volatility calculation test passed");
     }
@@ -515,17 +466,14 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         hook.enableAutoRebalance(poolKey, -600, 600, 1000e18); // Wide range initially with 1000 liquidity
 
         // Check position data
-        LendingLiquidityGuardianHook.RebalanceData memory position = hook
-            .getPositionData(poolKey, lpProvider);
-        assertTrue(
-            position.autoRebalanceEnabled,
-            "Auto-rebalance should be enabled"
-        );
+        LendingLiquidityGuardianHook.RebalanceData memory position =
+            hook.getPositionData(poolKey, lpProvider);
+        assertTrue(position.autoRebalanceEnabled, "Auto-rebalance should be enabled");
 
         vm.stopPrank();
 
         // Simulate price movements that would trigger rebalancing
-        for (uint i = 0; i < 5; i++) {
+        for (uint256 i = 0; i < 5; i++) {
             vm.prank(address(manager));
 
             IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
@@ -535,23 +483,22 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
             });
 
             // Create liquidation data to trigger position monitoring
-            LendingLiquidityGuardianHook.LiquidationData
-                memory liquidationData = LendingLiquidityGuardianHook
-                    .LiquidationData({
-                        borrower: borrower,
-                        collateralAsset: WETH,
-                        debtAsset: USDC,
-                        debtToCover: 0,
-                        receiveAToken: false,
-                        protocolAdapter: AAVE_V3_POOL
-                    });
+            LendingLiquidityGuardianHook.LiquidationData memory liquidationData =
+            LendingLiquidityGuardianHook.LiquidationData({
+                borrower: borrower,
+                collateralAsset: WETH,
+                debtAsset: USDC,
+                debtToCover: 0,
+                receiveAToken: false,
+                protocolAdapter: AAVE_V3_POOL
+            });
 
             bytes memory hookData = abi.encode(liquidationData);
             BalanceDelta delta = BalanceDelta.wrap(0);
 
-            try
-                hook.afterSwap(lpProvider, poolKey, params, delta, hookData)
-            returns (bytes4 selector, int128 hookDelta) {
+            try hook.afterSwap(lpProvider, poolKey, params, delta, hookData) returns (
+                bytes4 selector, int128 hookDelta
+            ) {
                 console.log("Position monitoring completed for swap", i + 1);
             } catch {
                 console.log("Position monitoring failed for swap", i + 1);
@@ -565,10 +512,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         console.log("\n=== TESTING TICK MONITORING ===");
 
         // Get initial pool state
-        (uint160 sqrtPriceX96, int24 currentTick, , ) = StateLibrary.getSlot0(
-            manager,
-            poolId
-        );
+        (uint160 sqrtPriceX96, int24 currentTick,,) = StateLibrary.getSlot0(manager, poolId);
         console.log("Initial tick:", currentTick);
         console.log("Initial sqrt price:", sqrtPriceX96);
 
@@ -580,7 +524,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         swapAmounts[3] = int256(TEST_AMOUNT * 2); // Large buy
         swapAmounts[4] = -int256(TEST_AMOUNT / 8); // Tiny sell
 
-        for (uint i = 0; i < swapAmounts.length; i++) {
+        for (uint256 i = 0; i < swapAmounts.length; i++) {
             vm.prank(address(manager));
 
             IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
@@ -592,7 +536,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
             });
 
             try hook.beforeSwap(address(this), poolKey, params, "") {
-                (, int24 newTick, , ) = StateLibrary.getSlot0(manager, poolId);
+                (, int24 newTick,,) = StateLibrary.getSlot0(manager, poolId);
                 console.log("Tick after swap:", newTick);
             } catch {
                 console.log("Tick monitoring failed for swap", i + 1);
@@ -617,16 +561,15 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         address unauthorizedLiquidator = makeAddr("unauthorized");
         vm.deal(unauthorizedLiquidator, INITIAL_BALANCE);
 
-        LendingLiquidityGuardianHook.LiquidationData
-            memory liquidationData = LendingLiquidityGuardianHook
-                .LiquidationData({
-                    borrower: borrower,
-                    collateralAsset: WETH,
-                    debtAsset: USDC,
-                    debtToCover: 1000e6,
-                    receiveAToken: false,
-                    protocolAdapter: AAVE_V3_POOL
-                });
+        LendingLiquidityGuardianHook.LiquidationData memory liquidationData =
+        LendingLiquidityGuardianHook.LiquidationData({
+            borrower: borrower,
+            collateralAsset: WETH,
+            debtAsset: USDC,
+            debtToCover: 1000e6,
+            receiveAToken: false,
+            protocolAdapter: AAVE_V3_POOL
+        });
 
         bytes memory hookData = abi.encode(liquidationData);
 
@@ -641,10 +584,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         try hook.beforeSwap(unauthorizedLiquidator, poolKey, params, hookData) {
             console.log("Unauthorized liquidation should have failed");
         } catch Error(string memory reason) {
-            console.log(
-                "Access control working - unauthorized liquidator blocked:",
-                reason
-            );
+            console.log("Access control working - unauthorized liquidator blocked:", reason);
         }
 
         // Test pause functionality
@@ -684,7 +624,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         try hook.beforeSwap(liquidator, poolKey, params, "") {
             uint256 gasUsed = gasBefore - gasleft();
             console.log("beforeSwap gas used:", gasUsed);
-            assertTrue(gasUsed < 200000, "beforeSwap should be gas efficient");
+            assertTrue(gasUsed < 200_000, "beforeSwap should be gas efficient");
         } catch {
             console.log("beforeSwap gas test failed");
         }
@@ -696,7 +636,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         try hook.afterSwap(liquidator, poolKey, params, delta, "") {
             uint256 gasUsed = gasBefore - gasleft();
             console.log("afterSwap gas used:", gasUsed);
-            assertTrue(gasUsed < 250000, "afterSwap should be gas efficient");
+            assertTrue(gasUsed < 250_000, "afterSwap should be gas efficient");
         } catch {
             console.log("afterSwap gas test failed");
         }
@@ -718,16 +658,15 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         vm.prank(liquidator);
         IERC20(WETH).approve(address(hook), type(uint256).max);
         // Create realistic liquidation scenario
-        LendingLiquidityGuardianHook.LiquidationData
-            memory liquidationData = LendingLiquidityGuardianHook
-                .LiquidationData({
-                    borrower: AAVE_BORROWER, // Real borrower with positions
-                    collateralAsset: WETH,
-                    debtAsset: USDC,
-                    debtToCover: 5000e6, // 5000 USDC
-                    receiveAToken: false,
-                    protocolAdapter: AAVE_V3_POOL
-                });
+        LendingLiquidityGuardianHook.LiquidationData memory liquidationData =
+        LendingLiquidityGuardianHook.LiquidationData({
+            borrower: AAVE_BORROWER, // Real borrower with positions
+            collateralAsset: WETH,
+            debtAsset: USDC,
+            debtToCover: 5000e6, // 5000 USDC
+            receiveAToken: false,
+            protocolAdapter: AAVE_V3_POOL
+        });
 
         bytes memory hookData = abi.encode(liquidationData);
 
@@ -748,9 +687,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         // Execute liquidation flow
         vm.prank(address(manager));
         try hook.beforeSwap(liquidator, poolKey, params, hookData) returns (
-            bytes4 selector,
-            BeforeSwapDelta beforeSwapDelta,
-            uint24 lpFeeOverride
+            bytes4 selector, BeforeSwapDelta beforeSwapDelta, uint24 lpFeeOverride
         ) {
             console.log("Liquidation flow executed successfully");
 
@@ -775,10 +712,7 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         console.log("Block timestamp:", block.timestamp);
 
         // Get current pool state
-        (uint160 sqrtPriceX96, int24 currentTick, , ) = StateLibrary.getSlot0(
-            manager,
-            poolId
-        );
+        (uint160 sqrtPriceX96, int24 currentTick,,) = StateLibrary.getSlot0(manager, poolId);
         console.log("Current pool tick:", currentTick);
         console.log("Current sqrt price:", sqrtPriceX96);
 
@@ -793,22 +727,14 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
         try IAaveV3Pool(AAVE_V3_POOL).getReserveData(USDC) returns (
             IAaveV3Pool.ReserveData memory reserveData
         ) {
-            console.log(
-                "Aave V3 USDC liquidity rate:",
-                reserveData.currentLiquidityRate
-            );
-            console.log(
-                "Aave V3 USDC borrow rate:",
-                reserveData.currentVariableBorrowRate
-            );
+            console.log("Aave V3 USDC liquidity rate:", reserveData.currentLiquidityRate);
+            console.log("Aave V3 USDC borrow rate:", reserveData.currentVariableBorrowRate);
         } catch {
             console.log("Failed to get Aave V3 reserve data");
         }
 
         // Compound V3 health check
-        try ICompoundV3Comet(COMPOUND_V3_USDC).getUtilization() returns (
-            uint256 utilization
-        ) {
+        try ICompoundV3Comet(COMPOUND_V3_USDC).getUtilization() returns (uint256 utilization) {
             console.log("Compound V3 utilization:", utilization);
         } catch {
             console.log("Failed to get Compound V3 utilization");
@@ -824,15 +750,13 @@ contract LendingLiquidityGuardianHookTest is Test, Deployers {
     function _createPoolKey(
         address token0,
         address token1
-    ) internal view returns (PoolKey memory) {
+    )
+        internal
+        view
+        returns (PoolKey memory)
+    {
         return
-            PoolKey(
-                Currency.wrap(token0),
-                Currency.wrap(token1),
-                3000,
-                60,
-                IHooks(address(hook))
-            );
+            PoolKey(Currency.wrap(token0), Currency.wrap(token1), 3000, 60, IHooks(address(hook)));
     }
 
     // =============================================================================

@@ -2,29 +2,29 @@
 pragma solidity ^0.8.26;
 
 // Uniswap V4 imports
-import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
-import {BaseTestHooks} from "v4-core/src/test/BaseTestHooks.sol";
-import {Hooks} from "v4-core/src/libraries/Hooks.sol";
-import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
-import {PoolKey} from "v4-core/src/types/PoolKey.sol";
-import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
-import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
-import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "v4-core/src/types/BeforeSwapDelta.sol";
-import {StateLibrary} from "v4-core/src/libraries/StateLibrary.sol";
-import {TickMath} from "v4-core/src/libraries/TickMath.sol";
-import {LiquidityAmounts} from "v4-core/test/utils/LiquidityAmounts.sol";
-import {Position} from "v4-core/src/libraries/Position.sol";
+import { IHooks } from "v4-core/src/interfaces/IHooks.sol";
+import { BaseTestHooks } from "v4-core/src/test/BaseTestHooks.sol";
+import { Hooks } from "v4-core/src/libraries/Hooks.sol";
+import { IPoolManager } from "v4-core/src/interfaces/IPoolManager.sol";
+import { PoolKey } from "v4-core/src/types/PoolKey.sol";
+import { PoolId, PoolIdLibrary } from "v4-core/src/types/PoolId.sol";
+import { BalanceDelta } from "v4-core/src/types/BalanceDelta.sol";
+import { BeforeSwapDelta, BeforeSwapDeltaLibrary } from "v4-core/src/types/BeforeSwapDelta.sol";
+import { StateLibrary } from "v4-core/src/libraries/StateLibrary.sol";
+import { TickMath } from "v4-core/src/libraries/TickMath.sol";
+import { LiquidityAmounts } from "v4-core/test/utils/LiquidityAmounts.sol";
+import { Position } from "v4-core/src/libraries/Position.sol";
 
 // Security imports
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 
 // Protocol interfaces
-import {IAaveV3Pool} from "./interfaces/IAaveV3Pool.sol";
-import {IAaveV3Oracle} from "./interfaces/IAaveV3Oracle.sol";
-import {ICompoundV3Comet} from "./interfaces/ICompoundV3Comet.sol";
-import {IChainlinkAggregator} from "./interfaces/IChainlinkAggregator.sol";
+import { IAaveV3Pool } from "./interfaces/IAaveV3Pool.sol";
+import { IAaveV3Oracle } from "./interfaces/IAaveV3Oracle.sol";
+import { ICompoundV3Comet } from "./interfaces/ICompoundV3Comet.sol";
+import { IChainlinkAggregator } from "./interfaces/IChainlinkAggregator.sol";
 
 /**
  * @title Lending Liquidity Guardian Hook
@@ -32,12 +32,7 @@ import {IChainlinkAggregator} from "./interfaces/IChainlinkAggregator.sol";
  *         with intelligent liquidity position optimization
  * @dev Implements beforeSwap and afterSwap hooks to automate loan liquidations and optimize LP positions
  */
-contract LendingLiquidityGuardianHook is
-    BaseTestHooks,
-    Ownable,
-    ReentrancyGuard,
-    Pausable
-{
+contract LendingLiquidityGuardianHook is BaseTestHooks, Ownable, ReentrancyGuard, Pausable {
     using BeforeSwapDeltaLibrary for BeforeSwapDelta;
     using PoolIdLibrary for PoolKey;
 
@@ -71,11 +66,7 @@ contract LendingLiquidityGuardianHook is
         uint256 volatilityScore
     );
 
-    event ProtocolAdapterUpdated(
-        address indexed protocol,
-        address indexed adapter,
-        bool enabled
-    );
+    event ProtocolAdapterUpdated(address indexed protocol, address indexed adapter, bool enabled);
 
     // =============================================================================
     // ERRORS
@@ -152,8 +143,7 @@ contract LendingLiquidityGuardianHook is
 
     // Mappings for LP position tracking
     mapping(bytes32 => mapping(bytes32 => LPPositionInfo)) public lpPositions; // poolId => protocolAdapter => position
-    mapping(bytes32 => mapping(bytes32 => TickMonitoringData))
-        public tickMonitoring; // poolId => protocolAdapter => monitoring
+    mapping(bytes32 => mapping(bytes32 => TickMonitoringData)) public tickMonitoring; // poolId => protocolAdapter => monitoring
 
     /// @notice Default liquidation threshold (1.05 = 105% health factor)
     uint256 public constant DEFAULT_LIQUIDATION_THRESHOLD = 1.05e18;
@@ -196,18 +186,11 @@ contract LendingLiquidityGuardianHook is
         override
         nonReentrant
         whenNotPaused
-        returns (
-            bytes4 selector,
-            BeforeSwapDelta beforeSwapDelta,
-            uint24 lpFeeOverride
-        )
+        returns (bytes4 selector, BeforeSwapDelta beforeSwapDelta, uint24 lpFeeOverride)
     {
         // Decode liquidation data if provided
         if (hookData.length > 0) {
-            LiquidationData memory liquidationData = abi.decode(
-                hookData,
-                (LiquidationData)
-            );
+            LiquidationData memory liquidationData = abi.decode(hookData, (LiquidationData));
 
             // Verify liquidation conditions
             if (_shouldExecuteLiquidation(liquidationData)) {
@@ -215,11 +198,7 @@ contract LendingLiquidityGuardianHook is
             }
         }
 
-        return (
-            IHooks.beforeSwap.selector,
-            BeforeSwapDeltaLibrary.ZERO_DELTA,
-            0
-        );
+        return (IHooks.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
     }
 
     /**
@@ -247,10 +226,7 @@ contract LendingLiquidityGuardianHook is
     {
         // Only process if this is a liquidation-related swap
         if (hookData.length > 0) {
-            LiquidationData memory liquidationData = abi.decode(
-                hookData,
-                (LiquidationData)
-            );
+            LiquidationData memory liquidationData = abi.decode(hookData, (LiquidationData));
 
             // Check if LP position rebalancing is needed
             _checkAndRebalanceLPPosition(key, liquidationData, delta);
@@ -263,10 +239,7 @@ contract LendingLiquidityGuardianHook is
         bytes32 positionId = _getPositionId(key, sender);
         RebalanceData storage position = positionData[positionId];
 
-        if (
-            position.autoRebalanceEnabled &&
-            _shouldRebalancePosition(key, position)
-        ) {
+        if (position.autoRebalanceEnabled && _shouldRebalancePosition(key, position)) {
             _rebalancePosition(key, position);
         }
 
@@ -283,37 +256,27 @@ contract LendingLiquidityGuardianHook is
         PoolKey calldata key,
         LiquidationData memory liquidationData,
         BalanceDelta delta
-    ) internal {
+    )
+        internal
+    {
         // Get current pool state
-        (uint160 sqrtPriceX96, int24 tick, , ) = StateLibrary.getSlot0(
-            poolManager,
-            key.toId()
-        );
+        (uint160 sqrtPriceX96, int24 tick,,) = StateLibrary.getSlot0(poolManager, key.toId());
 
         // Check if current tick is outside optimal range
         int24 optimalLowerTick = _calculateOptimalLowerTick(
-            tick,
-            bytes32(uint256(uint160(liquidationData.protocolAdapter)))
+            tick, bytes32(uint256(uint160(liquidationData.protocolAdapter)))
         );
         int24 optimalUpperTick = _calculateOptimalUpperTick(
-            tick,
-            bytes32(uint256(uint160(liquidationData.protocolAdapter)))
+            tick, bytes32(uint256(uint160(liquidationData.protocolAdapter)))
         );
 
         // Get current LP position info
-        LPPositionInfo memory currentPosition = lpPositions[
-            PoolId.unwrap(key.toId())
-        ][bytes32(uint256(uint160(liquidationData.protocolAdapter)))];
+        LPPositionInfo memory currentPosition = lpPositions[PoolId.unwrap(key.toId())][bytes32(
+            uint256(uint160(liquidationData.protocolAdapter))
+        )];
 
         // Check if rebalancing is needed
-        if (
-            _shouldRebalancePosition(
-                currentPosition,
-                optimalLowerTick,
-                optimalUpperTick,
-                tick
-            )
-        ) {
+        if (_shouldRebalancePosition(currentPosition, optimalLowerTick, optimalUpperTick, tick)) {
             _executePositionRebalancing(
                 key,
                 bytes32(uint256(uint160(liquidationData.protocolAdapter))),
@@ -333,16 +296,15 @@ contract LendingLiquidityGuardianHook is
     function _monitorTickRanges(
         PoolKey calldata key,
         LiquidationData memory liquidationData
-    ) internal {
-        (, int24 currentTick, , ) = StateLibrary.getSlot0(
-            poolManager,
-            key.toId()
-        );
+    )
+        internal
+    {
+        (, int24 currentTick,,) = StateLibrary.getSlot0(poolManager, key.toId());
 
         // Update tick monitoring data
-        TickMonitoringData storage monitoringData = tickMonitoring[
-            PoolId.unwrap(key.toId())
-        ][bytes32(uint256(uint160(liquidationData.protocolAdapter)))];
+        TickMonitoringData storage monitoringData = tickMonitoring[PoolId.unwrap(key.toId())][bytes32(
+            uint256(uint160(liquidationData.protocolAdapter))
+        )];
 
         // Update price movement tracking
         monitoringData.lastUpdateTimestamp = block.timestamp;
@@ -351,18 +313,15 @@ contract LendingLiquidityGuardianHook is
         // Keep only recent tick history (last 100 entries)
         if (monitoringData.tickHistory.length > 100) {
             // Remove oldest entry
-            for (uint i = 0; i < monitoringData.tickHistory.length - 1; i++) {
-                monitoringData.tickHistory[i] = monitoringData.tickHistory[
-                    i + 1
-                ];
+            for (uint256 i = 0; i < monitoringData.tickHistory.length - 1; i++) {
+                monitoringData.tickHistory[i] = monitoringData.tickHistory[i + 1];
             }
             monitoringData.tickHistory.pop();
         }
 
         // Calculate volatility metrics
         _updateVolatilityMetrics(
-            PoolId.unwrap(key.toId()),
-            bytes32(uint256(uint160(liquidationData.protocolAdapter)))
+            PoolId.unwrap(key.toId()), bytes32(uint256(uint160(liquidationData.protocolAdapter)))
         );
 
         // Emit monitoring event
@@ -387,18 +346,19 @@ contract LendingLiquidityGuardianHook is
     function _calculateOptimalLowerTick(
         int24 currentTick,
         bytes32 protocolAdapter
-    ) internal view returns (int24 optimalLowerTick) {
+    )
+        internal
+        view
+        returns (int24 optimalLowerTick)
+    {
         // Get protocol-specific configuration
-        ProtocolAdapter memory adapter = protocolAdapters[
-            address(uint160(uint256(protocolAdapter)))
-        ];
+        ProtocolAdapter memory adapter =
+            protocolAdapters[address(uint160(uint256(protocolAdapter)))];
 
         // Calculate lower bound based on liquidation threshold
         // Typically 10-20% below current price for liquidation scenarios
         int24 tickSpacing = 60; // Standard tick spacing for most pools
-        int24 lowerOffset = int24(
-            int256((adapter.liquidationThreshold * 200) / 10000)
-        ); // Convert to tick offset
+        int24 lowerOffset = int24(int256((adapter.liquidationThreshold * 200) / 10_000)); // Convert to tick offset
 
         optimalLowerTick = currentTick - lowerOffset;
 
@@ -417,18 +377,19 @@ contract LendingLiquidityGuardianHook is
     function _calculateOptimalUpperTick(
         int24 currentTick,
         bytes32 protocolAdapter
-    ) internal view returns (int24 optimalUpperTick) {
+    )
+        internal
+        view
+        returns (int24 optimalUpperTick)
+    {
         // Get protocol-specific configuration
-        ProtocolAdapter memory adapter = protocolAdapters[
-            address(uint160(uint256(protocolAdapter)))
-        ];
+        ProtocolAdapter memory adapter =
+            protocolAdapters[address(uint160(uint256(protocolAdapter)))];
 
         // Calculate upper bound for optimal liquidity provision
         // Typically 15-30% above current price
         int24 tickSpacing = 60;
-        int24 upperOffset = int24(
-            int256((adapter.liquidationThreshold * 300) / 10000)
-        );
+        int24 upperOffset = int24(int256((adapter.liquidationThreshold * 300) / 10_000));
 
         optimalUpperTick = currentTick + upperOffset;
 
@@ -451,17 +412,18 @@ contract LendingLiquidityGuardianHook is
         int24 optimalLowerTick,
         int24 optimalUpperTick,
         int24 currentTick
-    ) internal pure returns (bool shouldRebalance) {
+    )
+        internal
+        pure
+        returns (bool shouldRebalance)
+    {
         // Check if position exists
         if (currentPosition.liquidity == 0) {
             return true; // Need to create initial position
         }
 
         // Check if current tick is outside position range
-        if (
-            currentTick <= currentPosition.lowerTick ||
-            currentTick >= currentPosition.upperTick
-        ) {
+        if (currentTick <= currentPosition.lowerTick || currentTick >= currentPosition.upperTick) {
             return true; // Position is out of range
         }
 
@@ -497,21 +459,20 @@ contract LendingLiquidityGuardianHook is
         int24 newLowerTick,
         int24 newUpperTick,
         BalanceDelta delta
-    ) internal {
+    )
+        internal
+    {
         PoolId poolId = key.toId();
 
         // Remove existing liquidity if any
         if (currentPosition.liquidity > 0) {
             // Calculate position key for the liquidity to remove
             bytes32 positionKey = Position.calculatePositionKey(
-                address(this),
-                currentPosition.lowerTick,
-                currentPosition.upperTick,
-                bytes32(0)
+                address(this), currentPosition.lowerTick, currentPosition.upperTick, bytes32(0)
             );
 
             // Remove liquidity using PoolManager
-            (BalanceDelta removeDelta, ) = poolManager.modifyLiquidity(
+            (BalanceDelta removeDelta,) = poolManager.modifyLiquidity(
                 key,
                 IPoolManager.ModifyLiquidityParams({
                     tickLower: currentPosition.lowerTick,
@@ -524,17 +485,12 @@ contract LendingLiquidityGuardianHook is
         }
 
         // Calculate new liquidity amount based on available tokens
-        uint128 newLiquidity = _calculateOptimalLiquidity(
-            key,
-            newLowerTick,
-            newUpperTick,
-            delta
-        );
+        uint128 newLiquidity = _calculateOptimalLiquidity(key, newLowerTick, newUpperTick, delta);
 
         // Add new liquidity position
         if (newLiquidity > 0) {
             // Add liquidity using PoolManager
-            (BalanceDelta addDelta, ) = poolManager.modifyLiquidity(
+            (BalanceDelta addDelta,) = poolManager.modifyLiquidity(
                 key,
                 IPoolManager.ModifyLiquidityParams({
                     tickLower: newLowerTick,
@@ -580,12 +536,13 @@ contract LendingLiquidityGuardianHook is
         int24 lowerTick,
         int24 upperTick,
         BalanceDelta delta
-    ) internal view returns (uint128 liquidity) {
+    )
+        internal
+        view
+        returns (uint128 liquidity)
+    {
         // Get current pool price
-        (uint160 sqrtPriceX96, , , ) = StateLibrary.getSlot0(
-            poolManager,
-            key.toId()
-        );
+        (uint160 sqrtPriceX96,,,) = StateLibrary.getSlot0(poolManager, key.toId());
 
         // Convert ticks to sqrt price ratios
         uint160 sqrtRatioAX96 = TickMath.getSqrtPriceAtTick(lowerTick);
@@ -601,11 +558,7 @@ contract LendingLiquidityGuardianHook is
 
         // Calculate liquidity using LiquidityAmounts library
         liquidity = LiquidityAmounts.getLiquidityForAmounts(
-            sqrtPriceX96,
-            sqrtRatioAX96,
-            sqrtRatioBX96,
-            amount0,
-            amount1
+            sqrtPriceX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1
         );
 
         return liquidity;
@@ -616,13 +569,8 @@ contract LendingLiquidityGuardianHook is
      * @param poolId The pool identifier
      * @param protocolAdapter The protocol adapter identifier
      */
-    function _updateVolatilityMetrics(
-        bytes32 poolId,
-        bytes32 protocolAdapter
-    ) internal {
-        TickMonitoringData storage data = tickMonitoring[poolId][
-            protocolAdapter
-        ];
+    function _updateVolatilityMetrics(bytes32 poolId, bytes32 protocolAdapter) internal {
+        TickMonitoringData storage data = tickMonitoring[poolId][protocolAdapter];
 
         if (data.tickHistory.length < 2) {
             return; // Need at least 2 data points
@@ -630,21 +578,18 @@ contract LendingLiquidityGuardianHook is
 
         // Calculate average tick movement
         uint256 totalMovement = 0;
-        for (uint i = 1; i < data.tickHistory.length; i++) {
+        for (uint256 i = 1; i < data.tickHistory.length; i++) {
             int24 movement = data.tickHistory[i] > data.tickHistory[i - 1]
                 ? data.tickHistory[i] - data.tickHistory[i - 1]
                 : data.tickHistory[i - 1] - data.tickHistory[i];
             totalMovement += uint256(int256(movement));
         }
 
-        data.averageTickMovement =
-            totalMovement /
-            (data.tickHistory.length - 1);
+        data.averageTickMovement = totalMovement / (data.tickHistory.length - 1);
 
         // Simple volatility score (0-100)
-        data.volatilityScore = data.averageTickMovement > 1000
-            ? 100
-            : (data.averageTickMovement * 100) / 1000;
+        data.volatilityScore =
+            data.averageTickMovement > 1000 ? 100 : (data.averageTickMovement * 100) / 1000;
     }
 
     // =============================================================================
@@ -656,13 +601,13 @@ contract LendingLiquidityGuardianHook is
      * @param liquidationData The liquidation parameters
      * @return shouldLiquidate True if liquidation should proceed
      */
-    function _shouldExecuteLiquidation(
-        LiquidationData memory liquidationData
-    ) internal view returns (bool shouldLiquidate) {
+    function _shouldExecuteLiquidation(LiquidationData memory liquidationData)
+        internal
+        view
+        returns (bool shouldLiquidate)
+    {
         // Verify protocol adapter is enabled
-        ProtocolAdapter memory adapter = protocolAdapters[
-            liquidationData.protocolAdapter
-        ];
+        ProtocolAdapter memory adapter = protocolAdapters[liquidationData.protocolAdapter];
         if (!adapter.enabled) {
             return false;
         }
@@ -685,7 +630,9 @@ contract LendingLiquidityGuardianHook is
         PoolKey calldata key,
         IPoolManager.SwapParams calldata params,
         LiquidationData memory liquidationData
-    ) internal {
+    )
+        internal
+    {
         // Verify liquidator authorization
         if (!authorizedLiquidators[sender]) {
             revert UnauthorizedLiquidator();
@@ -715,28 +662,20 @@ contract LendingLiquidityGuardianHook is
      * @param liquidationData The liquidation parameters
      * @return healthFactor The current health factor (scaled by 1e18)
      */
-    function _getHealthFactor(
-        LiquidationData memory liquidationData
-    ) internal view returns (uint256 healthFactor) {
-        ProtocolAdapter memory adapter = protocolAdapters[
-            liquidationData.protocolAdapter
-        ];
+    function _getHealthFactor(LiquidationData memory liquidationData)
+        internal
+        view
+        returns (uint256 healthFactor)
+    {
+        ProtocolAdapter memory adapter = protocolAdapters[liquidationData.protocolAdapter];
 
         // Check if this is an Aave V3 protocol
         if (_isAaveV3Protocol(adapter.adapterAddress)) {
-            return
-                _getAaveV3HealthFactor(
-                    adapter.adapterAddress,
-                    liquidationData.borrower
-                );
+            return _getAaveV3HealthFactor(adapter.adapterAddress, liquidationData.borrower);
         }
         // Check if this is a Compound V3 protocol
         else if (_isCompoundV3Protocol(adapter.adapterAddress)) {
-            return
-                _getCompoundV3HealthFactor(
-                    adapter.adapterAddress,
-                    liquidationData.borrower
-                );
+            return _getCompoundV3HealthFactor(adapter.adapterAddress, liquidationData.borrower);
         }
 
         // Default fallback
@@ -752,10 +691,14 @@ contract LendingLiquidityGuardianHook is
     function _getAaveV3HealthFactor(
         address poolAddress,
         address user
-    ) internal view returns (uint256 healthFactor) {
+    )
+        internal
+        view
+        returns (uint256 healthFactor)
+    {
         IAaveV3Pool pool = IAaveV3Pool(poolAddress);
 
-        (, , , , , uint256 aaveHealthFactor) = pool.getUserAccountData(user);
+        (,,,,, uint256 aaveHealthFactor) = pool.getUserAccountData(user);
 
         return aaveHealthFactor;
     }
@@ -769,7 +712,11 @@ contract LendingLiquidityGuardianHook is
     function _getCompoundV3HealthFactor(
         address cometAddress,
         address user
-    ) internal view returns (uint256 healthFactor) {
+    )
+        internal
+        view
+        returns (uint256 healthFactor)
+    {
         ICompoundV3Comet comet = ICompoundV3Comet(cometAddress);
 
         // Check if user is liquidatable (underwater)
@@ -791,13 +738,9 @@ contract LendingLiquidityGuardianHook is
      * @param protocolAddress The protocol address to check
      * @return isAave True if it's an Aave V3 protocol
      */
-    function _isAaveV3Protocol(
-        address protocolAddress
-    ) internal view returns (bool isAave) {
+    function _isAaveV3Protocol(address protocolAddress) internal view returns (bool isAave) {
         // Try to call a function specific to Aave V3
-        try IAaveV3Pool(protocolAddress).MAX_NUMBER_RESERVES() returns (
-            uint16
-        ) {
+        try IAaveV3Pool(protocolAddress).MAX_NUMBER_RESERVES() returns (uint16) {
             return true;
         } catch {
             return false;
@@ -809,9 +752,11 @@ contract LendingLiquidityGuardianHook is
      * @param protocolAddress The protocol address to check
      * @return isCompound True if it's a Compound V3 protocol
      */
-    function _isCompoundV3Protocol(
-        address protocolAddress
-    ) internal view returns (bool isCompound) {
+    function _isCompoundV3Protocol(address protocolAddress)
+        internal
+        view
+        returns (bool isCompound)
+    {
         // Try to call a function specific to Compound V3
         try ICompoundV3Comet(protocolAddress).baseToken() returns (address) {
             return true;
@@ -824,12 +769,8 @@ contract LendingLiquidityGuardianHook is
      * @notice Call the appropriate protocol liquidation function
      * @param liquidationData The liquidation parameters
      */
-    function _callProtocolLiquidation(
-        LiquidationData memory liquidationData
-    ) internal {
-        ProtocolAdapter memory adapter = protocolAdapters[
-            liquidationData.protocolAdapter
-        ];
+    function _callProtocolLiquidation(LiquidationData memory liquidationData) internal {
+        ProtocolAdapter memory adapter = protocolAdapters[liquidationData.protocolAdapter];
 
         // Execute Aave V3 liquidation
         if (_isAaveV3Protocol(adapter.adapterAddress)) {
@@ -837,10 +778,7 @@ contract LendingLiquidityGuardianHook is
         }
         // Execute Compound V3 liquidation (absorption)
         else if (_isCompoundV3Protocol(adapter.adapterAddress)) {
-            _executeCompoundV3Liquidation(
-                adapter.adapterAddress,
-                liquidationData
-            );
+            _executeCompoundV3Liquidation(adapter.adapterAddress, liquidationData);
         } else {
             revert InvalidProtocolAdapter();
         }
@@ -854,7 +792,9 @@ contract LendingLiquidityGuardianHook is
     function _executeAaveV3Liquidation(
         address poolAddress,
         LiquidationData memory liquidationData
-    ) internal {
+    )
+        internal
+    {
         IAaveV3Pool pool = IAaveV3Pool(poolAddress);
 
         // Execute the liquidation call
@@ -875,7 +815,9 @@ contract LendingLiquidityGuardianHook is
     function _executeCompoundV3Liquidation(
         address cometAddress,
         LiquidationData memory liquidationData
-    ) internal {
+    )
+        internal
+    {
         ICompoundV3Comet comet = ICompoundV3Comet(cometAddress);
 
         // Create array with single account to absorb
@@ -886,10 +828,7 @@ contract LendingLiquidityGuardianHook is
         comet.absorb(msg.sender, accounts);
 
         // Optionally buy collateral if specified
-        if (
-            liquidationData.collateralAsset != address(0) &&
-            liquidationData.debtToCover > 0
-        ) {
+        if (liquidationData.collateralAsset != address(0) && liquidationData.debtToCover > 0) {
             comet.buyCollateral(
                 liquidationData.collateralAsset,
                 0, // minAmount - could be calculated based on slippage tolerance
@@ -912,18 +851,16 @@ contract LendingLiquidityGuardianHook is
     function _shouldRebalancePosition(
         PoolKey calldata key,
         RebalanceData storage position
-    ) internal view returns (bool shouldRebalance) {
+    )
+        internal
+        view
+        returns (bool shouldRebalance)
+    {
         // Get current tick from pool
-        (, int24 currentTick, , ) = StateLibrary.getSlot0(
-            poolManager,
-            key.toId()
-        );
+        (, int24 currentTick,,) = StateLibrary.getSlot0(poolManager, key.toId());
 
         // Check if current tick is outside the position range
-        if (
-            currentTick <= position.tickLower ||
-            currentTick >= position.tickUpper
-        ) {
+        if (currentTick <= position.tickLower || currentTick >= position.tickUpper) {
             return true;
         }
 
@@ -933,8 +870,8 @@ contract LendingLiquidityGuardianHook is
 
         // Rebalance if within threshold of boundaries
         if (
-            currentTick - position.tickLower <= threshold ||
-            position.tickUpper - currentTick <= threshold
+            currentTick - position.tickLower <= threshold
+                || position.tickUpper - currentTick <= threshold
         ) {
             return true;
         }
@@ -947,15 +884,9 @@ contract LendingLiquidityGuardianHook is
      * @param key The pool key
      * @param position The position data
      */
-    function _rebalancePosition(
-        PoolKey calldata key,
-        RebalanceData storage position
-    ) internal {
+    function _rebalancePosition(PoolKey calldata key, RebalanceData storage position) internal {
         // Calculate optimal new tick range
-        (int24 newTickLower, int24 newTickUpper) = _calculateOptimalRange(
-            key,
-            position
-        );
+        (int24 newTickLower, int24 newTickUpper) = _calculateOptimalRange(key, position);
 
         // Validate new tick range
         if (newTickLower >= newTickUpper) {
@@ -971,12 +902,7 @@ contract LendingLiquidityGuardianHook is
         position.tickUpper = newTickUpper;
 
         emit PositionRebalanced(
-            key,
-            position.positionOwner,
-            oldTickLower,
-            oldTickUpper,
-            newTickLower,
-            newTickUpper
+            key, position.positionOwner, oldTickLower, oldTickUpper, newTickLower, newTickUpper
         );
     }
 
@@ -990,12 +916,13 @@ contract LendingLiquidityGuardianHook is
     function _calculateOptimalRange(
         PoolKey calldata key,
         RebalanceData storage position
-    ) internal view returns (int24 newTickLower, int24 newTickUpper) {
+    )
+        internal
+        view
+        returns (int24 newTickLower, int24 newTickUpper)
+    {
         // Get current tick from pool
-        (, int24 currentTick, , ) = StateLibrary.getSlot0(
-            poolManager,
-            key.toId()
-        );
+        (, int24 currentTick,,) = StateLibrary.getSlot0(poolManager, key.toId());
 
         // Get volatility metric for dynamic range sizing
         uint256 volatility = _getVolatilityMetric(key);
@@ -1031,9 +958,11 @@ contract LendingLiquidityGuardianHook is
      * @param key The pool key
      * @return volatility The volatility metric (0-100)
      */
-    function _getVolatilityMetric(
-        PoolKey calldata key
-    ) internal view returns (uint256 volatility) {
+    function _getVolatilityMetric(PoolKey calldata key)
+        internal
+        view
+        returns (uint256 volatility)
+    {
         bytes32 poolId = PoolId.unwrap(key.toId());
 
         // Try to get volatility from different protocol adapters
@@ -1043,9 +972,7 @@ contract LendingLiquidityGuardianHook is
 
         // Check Aave adapter data if available
         bytes32 aaveAdapter = keccak256("AAVE_V3");
-        TickMonitoringData storage aaveData = tickMonitoring[poolId][
-            aaveAdapter
-        ];
+        TickMonitoringData storage aaveData = tickMonitoring[poolId][aaveAdapter];
         if (aaveData.tickHistory.length >= 10) {
             uint256 aaveVolatility = _calculateVolatilityFromTicks(aaveData);
             if (aaveVolatility > maxVolatility) {
@@ -1056,13 +983,9 @@ contract LendingLiquidityGuardianHook is
 
         // Check Compound adapter data if available
         bytes32 compoundAdapter = keccak256("COMPOUND_V3");
-        TickMonitoringData storage compoundData = tickMonitoring[poolId][
-            compoundAdapter
-        ];
+        TickMonitoringData storage compoundData = tickMonitoring[poolId][compoundAdapter];
         if (compoundData.tickHistory.length >= 10) {
-            uint256 compoundVolatility = _calculateVolatilityFromTicks(
-                compoundData
-            );
+            uint256 compoundVolatility = _calculateVolatilityFromTicks(compoundData);
             if (compoundVolatility > maxVolatility) {
                 maxVolatility = compoundVolatility;
             }
@@ -1083,17 +1006,17 @@ contract LendingLiquidityGuardianHook is
      * @param data The tick monitoring data
      * @return volatility The calculated volatility (0-100)
      */
-    function _calculateVolatilityFromTicks(
-        TickMonitoringData storage data
-    ) internal view returns (uint256 volatility) {
+    function _calculateVolatilityFromTicks(TickMonitoringData storage data)
+        internal
+        view
+        returns (uint256 volatility)
+    {
         if (data.tickHistory.length < 10) {
             return 50; // Default moderate volatility
         }
 
         // Calculate the mean of recent tick movements
-        uint256 recentPeriod = data.tickHistory.length > 50
-            ? 50
-            : data.tickHistory.length;
+        uint256 recentPeriod = data.tickHistory.length > 50 ? 50 : data.tickHistory.length;
         int256 totalMovement = 0;
         uint256 startIndex = data.tickHistory.length - recentPeriod;
 
@@ -1132,14 +1055,13 @@ contract LendingLiquidityGuardianHook is
      * @param key The pool key
      * @return volatility The calculated volatility (0-100)
      */
-    function _calculateCurrentPoolVolatility(
-        PoolKey calldata key
-    ) internal view returns (uint256 volatility) {
+    function _calculateCurrentPoolVolatility(PoolKey calldata key)
+        internal
+        view
+        returns (uint256 volatility)
+    {
         // Get current pool state
-        (uint160 sqrtPriceX96, int24 currentTick, , ) = StateLibrary.getSlot0(
-            poolManager,
-            key.toId()
-        );
+        (uint160 sqrtPriceX96, int24 currentTick,,) = StateLibrary.getSlot0(poolManager, key.toId());
 
         // Estimate volatility based on pool fee tier and current tick
         // Higher fee pools typically indicate higher volatility assets
@@ -1147,7 +1069,7 @@ contract LendingLiquidityGuardianHook is
 
         // Base volatility from fee tier
         uint256 baseVolatility;
-        if (fee >= 10000) {
+        if (fee >= 10_000) {
             // 1% fee
             baseVolatility = 80; // High volatility
         } else if (fee >= 3000) {
@@ -1164,9 +1086,9 @@ contract LendingLiquidityGuardianHook is
         // Adjust based on how far current tick is from typical ranges
         // Extreme ticks might indicate higher volatility
         int24 absCurrentTick = currentTick < 0 ? -currentTick : currentTick;
-        if (absCurrentTick > 100000) {
+        if (absCurrentTick > 100_000) {
             baseVolatility = (baseVolatility * 120) / 100; // +20%
-        } else if (absCurrentTick > 50000) {
+        } else if (absCurrentTick > 50_000) {
             baseVolatility = (baseVolatility * 110) / 100; // +10%
         }
 
@@ -1205,14 +1127,8 @@ contract LendingLiquidityGuardianHook is
      * @param owner The position owner
      * @return positionId The unique position identifier
      */
-    function _getPositionId(
-        PoolKey calldata key,
-        address owner
-    ) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(key.currency0, key.currency1, key.fee, owner)
-            );
+    function _getPositionId(PoolKey calldata key, address owner) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(key.currency0, key.currency1, key.fee, owner));
     }
 
     // =============================================================================
@@ -1231,7 +1147,10 @@ contract LendingLiquidityGuardianHook is
         address adapter,
         bool enabled,
         uint256 liquidationThreshold
-    ) external onlyOwner {
+    )
+        external
+        onlyOwner
+    {
         protocolAdapters[protocol] = ProtocolAdapter({
             adapterAddress: adapter,
             enabled: enabled,
@@ -1246,10 +1165,7 @@ contract LendingLiquidityGuardianHook is
      * @param liquidator The liquidator address
      * @param authorized Whether the liquidator is authorized
      */
-    function setLiquidatorAuthorization(
-        address liquidator,
-        bool authorized
-    ) external onlyOwner {
+    function setLiquidatorAuthorization(address liquidator, bool authorized) external onlyOwner {
         authorizedLiquidators[liquidator] = authorized;
     }
 
@@ -1265,7 +1181,9 @@ contract LendingLiquidityGuardianHook is
         int24 tickLower,
         int24 tickUpper,
         uint128 liquidity
-    ) external {
+    )
+        external
+    {
         bytes32 positionId = _getPositionId(key, msg.sender);
 
         positionData[positionId] = RebalanceData({
@@ -1313,7 +1231,11 @@ contract LendingLiquidityGuardianHook is
     function getPositionData(
         PoolKey calldata key,
         address owner
-    ) external view returns (RebalanceData memory position) {
+    )
+        external
+        view
+        returns (RebalanceData memory position)
+    {
         bytes32 positionId = _getPositionId(key, owner);
         return positionData[positionId];
     }
@@ -1323,9 +1245,7 @@ contract LendingLiquidityGuardianHook is
      * @param liquidator The liquidator address
      * @return authorized True if authorized
      */
-    function isLiquidatorAuthorized(
-        address liquidator
-    ) external view returns (bool authorized) {
+    function isLiquidatorAuthorized(address liquidator) external view returns (bool authorized) {
         return authorizedLiquidators[liquidator];
     }
 
@@ -1334,16 +1254,16 @@ contract LendingLiquidityGuardianHook is
      * @param protocol The protocol address
      * @return adapter The adapter information
      */
-    function getProtocolAdapter(
-        address protocol
-    ) external view returns (ProtocolAdapter memory adapter) {
+    function getProtocolAdapter(address protocol)
+        external
+        view
+        returns (ProtocolAdapter memory adapter)
+    {
         return protocolAdapters[protocol];
     }
 
     /// @notice Public getter for volatility metric (for testing purposes)
-    function getVolatilityMetric(
-        PoolKey calldata key
-    ) external view returns (uint256) {
+    function getVolatilityMetric(PoolKey calldata key) external view returns (uint256) {
         return _getVolatilityMetric(key);
     }
 
@@ -1355,7 +1275,12 @@ contract LendingLiquidityGuardianHook is
         address, /* sender */
         PoolKey calldata, /* key */
         uint160 /* sqrtPriceX96 */
-    ) external pure override returns (bytes4) {
+    )
+        external
+        pure
+        override
+        returns (bytes4)
+    {
         return IHooks.beforeInitialize.selector;
     }
 
@@ -1364,31 +1289,31 @@ contract LendingLiquidityGuardianHook is
         PoolKey calldata, /* key */
         uint160, /* sqrtPriceX96 */
         int24 /* tick */
-    ) external pure override returns (bytes4) {
+    )
+        external
+        pure
+        override
+        returns (bytes4)
+    {
         return IHooks.afterInitialize.selector;
     }
 
-    function getHookPermissions()
-        public
-        pure
-        returns (Hooks.Permissions memory)
-    {
-        return
-            Hooks.Permissions({
-                beforeInitialize: true,
-                afterInitialize: true,
-                beforeAddLiquidity: false,
-                afterAddLiquidity: true,
-                beforeRemoveLiquidity: false,
-                afterRemoveLiquidity: false,
-                beforeSwap: true,
-                afterSwap: true,
-                beforeDonate: false,
-                afterDonate: false,
-                beforeSwapReturnDelta: false,
-                afterSwapReturnDelta: false,
-                afterAddLiquidityReturnDelta: false,
-                afterRemoveLiquidityReturnDelta: false
-            });
+    function getHookPermissions() public pure returns (Hooks.Permissions memory) {
+        return Hooks.Permissions({
+            beforeInitialize: true,
+            afterInitialize: true,
+            beforeAddLiquidity: false,
+            afterAddLiquidity: true,
+            beforeRemoveLiquidity: false,
+            afterRemoveLiquidity: false,
+            beforeSwap: true,
+            afterSwap: true,
+            beforeDonate: false,
+            afterDonate: false,
+            beforeSwapReturnDelta: false,
+            afterSwapReturnDelta: false,
+            afterAddLiquidityReturnDelta: false,
+            afterRemoveLiquidityReturnDelta: false
+        });
     }
 }
